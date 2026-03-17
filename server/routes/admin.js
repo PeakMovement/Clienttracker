@@ -94,6 +94,21 @@ router.get('/overdue-reviews', (req, res) => {
   res.json(rows);
 });
 
+// GET /api/admin/predictive-clients
+router.get('/predictive-clients', (req, res) => {
+  const rows = db.prepare(`
+    SELECT c.id, c.name, c.email, c.predictive_flagged_at, c.status,
+      st.name AS staff_name, st.profession AS staff_profession,
+      (SELECT session_number FROM sessions WHERE client_id = c.id ORDER BY session_number DESC LIMIT 1) AS last_session_number,
+      (SELECT created_at FROM sessions WHERE client_id = c.id ORDER BY created_at DESC LIMIT 1) AS last_session_date
+    FROM clients c
+    JOIN staff st ON c.staff_id = st.id
+    WHERE c.predictive = 1
+    ORDER BY c.predictive_flagged_at DESC
+  `).all();
+  res.json(rows);
+});
+
 // POST /api/admin/import-bookings
 // Body: { groups: [{ clientName, clientEmail, staffId, sessions: [{date, service}], plan }] }
 router.post('/import-bookings', (req, res) => {

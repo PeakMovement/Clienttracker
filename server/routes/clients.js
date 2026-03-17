@@ -50,6 +50,17 @@ router.put('/:id/reactivate', (req, res) => {
   res.json({ success: true });
 });
 
+// PUT /api/clients/:id/predictive — toggle predictive flag
+router.put('/:id/predictive', (req, res) => {
+  const client = db.prepare('SELECT * FROM clients WHERE id = ? AND staff_id = ?').get(req.params.id, req.user.staffId);
+  if (!client) return res.status(404).json({ error: 'Client not found' });
+  const newValue = client.predictive ? 0 : 1;
+  db.prepare(
+    "UPDATE clients SET predictive = ?, predictive_flagged_at = ?, updated_at = datetime('now') WHERE id = ?"
+  ).run(newValue, newValue ? new Date().toISOString() : null, req.params.id);
+  res.json({ predictive: newValue });
+});
+
 // GET /api/clients/:id/sessions — session history
 router.get('/:id/sessions', (req, res) => {
   const client = db.prepare('SELECT * FROM clients WHERE id = ? AND staff_id = ?').get(req.params.id, req.user.staffId);

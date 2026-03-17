@@ -84,6 +84,15 @@ export default function StaffDashboard() {
     }
   };
 
+  const handleTogglePredictive = async (client) => {
+    try {
+      const { data } = await api.put(`/clients/${client.id}/predictive`);
+      setClients(prev => prev.map(c => c.id === client.id ? { ...c, predictive: data.predictive } : c));
+    } catch (err) {
+      alert(err.response?.data?.error || 'Failed to update client');
+    }
+  };
+
   const active = clients.filter(c => c.status === 'active');
   const completed = clients.filter(c => c.status === 'completed');
 
@@ -139,6 +148,7 @@ export default function StaffDashboard() {
                   latestPlans={latestPlansMap[client.id]}
                   onAddSession={handleAddSession}
                   onComplete={handleComplete}
+                  onTogglePredictive={handleTogglePredictive}
                 />
               ))}
             </div>

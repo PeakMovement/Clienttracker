@@ -18,7 +18,7 @@ function PlanBadge({ type, detail }) {
   );
 }
 
-export default function ClientCard({ client, latestPlans, onAddSession, onComplete, onReactivate }) {
+export default function ClientCard({ client, latestPlans, onAddSession, onComplete, onReactivate, onTogglePredictive }) {
   const navigate = useNavigate();
   const isCompleted = client.status === 'completed';
 
@@ -32,9 +32,27 @@ export default function ClientCard({ client, latestPlans, onAddSession, onComple
       >
         <div className="flex items-start justify-between mb-1">
           <h3 className="text-lg font-semibold text-gray-900">{client.name}</h3>
-          {isCompleted && (
-            <span className="text-xs bg-gray-200 text-gray-600 px-2 py-1 rounded-lg">Completed</span>
-          )}
+          <div className="flex items-center gap-2">
+            {!isCompleted && onTogglePredictive && (
+              <button
+                onClick={(e) => { e.stopPropagation(); onTogglePredictive(client); }}
+                title="Flag as Predictive — shows on admin dashboard"
+                className={`flex items-center gap-1 px-2 py-1 rounded-lg text-xs font-medium border transition-colors ${
+                  client.predictive
+                    ? 'bg-teal-500 text-white border-teal-500'
+                    : 'bg-white text-gray-400 border-gray-200 hover:border-teal-400 hover:text-teal-500'
+                }`}
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3" viewBox="0 0 20 20" fill="currentColor">
+                  <path d="M11.3 1.046A1 1 0 0112 2v5h4a1 1 0 01.82 1.573l-7 10A1 1 0 018 18v-5H4a1 1 0 01-.82-1.573l7-10a1 1 0 011.12-.38z" />
+                </svg>
+                Predictive
+              </button>
+            )}
+            {isCompleted && (
+              <span className="text-xs bg-gray-200 text-gray-600 px-2 py-1 rounded-lg">Completed</span>
+            )}
+          </div>
         </div>
         {client.last_session_number && (
           <p className="text-sm text-gray-500 mb-2">

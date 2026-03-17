@@ -18,12 +18,22 @@ export default function AdminDashboard() {
   const [activeTab, setActiveTab] = useState('reviews');
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [predictiveClients, setPredictiveClients] = useState([]);
   const intervalRef = useRef(null);
 
   const fetchStats = useCallback(async () => {
     try {
       const { data } = await api.get('/admin/dashboard');
       setStats(data);
+    } catch (err) {
+      console.error(err);
+    }
+  }, []);
+
+  const fetchPredictive = useCallback(async () => {
+    try {
+      const { data } = await api.get('/admin/predictive-clients');
+      setPredictiveClients(data);
     } catch (err) {
       console.error(err);
     }
@@ -46,7 +56,8 @@ export default function AdminDashboard() {
   const refresh = useCallback(() => {
     fetchStats();
     fetchItems(activeTab);
-  }, [fetchStats, fetchItems, activeTab]);
+    fetchPredictive();
+  }, [fetchStats, fetchItems, activeTab, fetchPredictive]);
 
   useEffect(() => {
     refresh();
@@ -90,6 +101,35 @@ export default function AdminDashboard() {
             <Link to="/admin/staff" className="text-brand-600 font-medium">Manage Staff</Link>
             <span>·</span>
             <Link to="/admin/import" className="text-brand-600 font-medium">Import Bookings</Link>
+          </div>
+        )}
+
+        {/* Predictive Clients */}
+        {predictiveClients.length > 0 && (
+          <div className="bg-teal-50 border border-teal-200 rounded-2xl p-4 space-y-2">
+            <div className="flex items-center gap-2 mb-1">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-teal-600" viewBox="0 0 20 20" fill="currentColor">
+                <path d="M11.3 1.046A1 1 0 0112 2v5h4a1 1 0 01.82 1.573l-7 10A1 1 0 018 18v-5H4a1 1 0 01-.82-1.573l7-10a1 1 0 011.12-.38z" />
+              </svg>
+              <span className="text-sm font-semibold text-teal-700">Predictive Clients to Contact ({predictiveClients.length})</span>
+            </div>
+            {predictiveClients.map(c => (
+              <div key={c.id} className="flex items-center justify-between bg-white rounded-xl px-3 py-2 border border-teal-100">
+                <div>
+                  <p className="text-sm font-medium text-gray-800">{c.name}</p>
+                  <p className="text-xs text-gray-400">
+                    {c.staff_name} · {c.staff_profession}
+                    {c.last_session_number && ` · Session ${c.last_session_number}`}
+                    {c.last_session_date && ` · ${new Date(c.last_session_date).toLocaleDateString('en-AU', { day: 'numeric', month: 'short' })}`}
+                  </p>
+                </div>
+                <span className="text-xs text-teal-500 font-medium whitespace-nowrap ml-2">
+                  {c.predictive_flagged_at
+                    ? new Date(c.predictive_flagged_at).toLocaleDateString('en-AU', { day: 'numeric', month: 'short' })
+                    : ''}
+                </span>
+              </div>
+            ))}
           </div>
         )}
 

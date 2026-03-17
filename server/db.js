@@ -66,6 +66,14 @@ try {
   db.exec(`ALTER TABLE clients ADD COLUMN email TEXT`);
 } catch (_) { /* column already exists */ }
 
+// Migrate: add predictive flag to clients
+try {
+  db.exec(`ALTER TABLE clients ADD COLUMN predictive INTEGER NOT NULL DEFAULT 0`);
+} catch (_) { /* column already exists */ }
+try {
+  db.exec(`ALTER TABLE clients ADD COLUMN predictive_flagged_at TEXT`);
+} catch (_) { /* column already exists */ }
+
 // Seed default admin if none exists
 const adminExists = db.prepare('SELECT id FROM staff WHERE is_admin = 1').get();
 if (!adminExists) {
