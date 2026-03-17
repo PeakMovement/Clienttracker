@@ -117,6 +117,24 @@ router.put('/predictive-clients/:id/contact-status', (req, res) => {
   res.json({ ok: true });
 });
 
+// GET /api/admin/followup-calendar — all incomplete follow-ups grouped by date
+router.get('/followup-calendar', (req, res) => {
+  const rows = db.prepare(`
+    SELECT
+      sp.id, sp.follow_up_date,
+      c.name AS client_name,
+      st.name AS staff_name, st.profession AS staff_profession,
+      s.session_number
+    FROM session_plans sp
+    JOIN sessions s ON sp.session_id = s.id
+    JOIN clients c ON s.client_id = c.id
+    JOIN staff st ON s.staff_id = st.id
+    WHERE sp.plan_type = 'follow_up' AND sp.is_completed = 0
+    ORDER BY sp.follow_up_date ASC
+  `).all();
+  res.json(rows);
+});
+
 // POST /api/admin/import-bookings
 // Body: { groups: [{ clientName, clientEmail, staffId, sessions: [{date, service}], plan }] }
 router.post('/import-bookings', (req, res) => {

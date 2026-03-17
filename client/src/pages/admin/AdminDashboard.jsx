@@ -110,6 +110,8 @@ export default function AdminDashboard() {
             <Link to="/admin/staff" className="text-brand-600 font-medium">Manage Staff</Link>
             <span>·</span>
             <Link to="/admin/import" className="text-brand-600 font-medium">Import Bookings</Link>
+            <span>·</span>
+            <Link to="/admin/followup-calendar" className="text-brand-600 font-medium">📅 Calendar</Link>
           </div>
         )}
 

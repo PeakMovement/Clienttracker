@@ -8,6 +8,7 @@ import ClientDetailPage from './pages/ClientDetailPage';
 import AdminDashboard from './pages/admin/AdminDashboard';
 import StaffManagementPage from './pages/admin/StaffManagementPage';
 import BookingImportPage from './pages/admin/BookingImportPage';
+import FollowUpCalendar from './pages/admin/FollowUpCalendar';
 
 function ProtectedRoute({ children }) {
   const { user } = useAuth();
@@ -40,6 +41,7 @@ function AppRoutes() {
       <Route path="/admin" element={<AdminRoute><AdminDashboard /></AdminRoute>} />
       <Route path="/admin/staff" element={<AdminRoute><StaffManagementPage /></AdminRoute>} />
       <Route path="/admin/import" element={<AdminRoute><BookingImportPage /></AdminRoute>} />
+      <Route path="/admin/followup-calendar" element={<AdminRoute><FollowUpCalendar /></AdminRoute>} />
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );
