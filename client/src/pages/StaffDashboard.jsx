@@ -15,6 +15,7 @@ export default function StaffDashboard() {
   const [newClientName, setNewClientName] = useState('');
   const [addingClient, setAddingClient] = useState(false);
   const [showAddForm, setShowAddForm] = useState(false);
+  const [wellDoneName, setWellDoneName] = useState('');
 
   const fetchClients = useCallback(async () => {
     try {
@@ -70,6 +71,8 @@ export default function StaffDashboard() {
     try {
       await api.put(`/clients/${client.id}/complete`);
       fetchClients();
+      setWellDoneName(client.name);
+      setTimeout(() => setWellDoneName(''), 2000);
     } catch (err) {
       alert(err.response?.data?.error || 'Failed to update client');
     }
@@ -98,6 +101,16 @@ export default function StaffDashboard() {
 
   return (
     <AppShell title={`${user?.name}'s Clients`}>
+      {/* Well done banner */}
+      {wellDoneName && (
+        <div className="fixed inset-0 flex items-center justify-center z-50 pointer-events-none">
+          <div className="bg-brand-600 text-white text-center px-10 py-6 rounded-3xl shadow-2xl animate-bounce-in">
+            <p className="text-3xl font-bold mb-1">Well done! 🎉</p>
+            <p className="text-lg opacity-90">{wellDoneName}'s journey is complete</p>
+          </div>
+        </div>
+      )}
+
       {/* Add new client */}
       <div className="mb-4">
         {!showAddForm ? (
