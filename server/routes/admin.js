@@ -94,6 +94,92 @@ router.get('/overdue-reviews', (req, res) => {
   res.json(rows);
 });
 
+// POST /api/admin/import-bookings
+// Body: { groups: [{ clientName, clientEmail, staffId, sessions: [{date, service}], plan }] }
+router.post('/import-bookings', (req, res) => {
+  const { groups } = req.body;
+  if (!Array.isArray(groups) || groups.length === 0) {
+    return res.status(400).json({ error: 'groups array required' });
+  }
+
+  const results = { imported: 0, skipped: 0, errors: [] };
+
+  const insertClient = db.prepare(
+    'INSERT INTO clients (name, email, staff_id) VALUES (?, ?, ?)'
+  );
+  const insertSession = db.prepare(
+    'INSERT INTO sessions (client_id, staff_id, session_number, created_at) VALUES (?, ?, ?, ?)'
+  );
+  const insertPlan = db.prepare(`
+    INSERT INTO session_plans (session_id, plan_type, follow_up_date, google_review_asked, refer_department, google_review_deadline)
+    VALUES (?, ?, ?, ?, ?, ?)
+  `);
+
+  const importGroup = db.transaction((group) => {
+    const { clientName, clientEmail, staffId, sessions, plan } = group;
+
+    // Find or create client
+    let client = null;
+    if (clientEmail) {
+      client = db.prepare('SELECT * FROM clients WHERE email = ? AND staff_id = ?').get(clientEmail, staffId);
+    }
+    if (!client) {
+      client = db.prepare(
+        'SELECT * FROM clients WHERE lower(name) = lower(?) AND staff_id = ?'
+      ).get(clientName, staffId);
+    }
+    if (!client) {
+      const r = insertClient.run(clientName, clientEmail || null, staffId);
+      client = { id: r.lastInsertRowid };
+    } else if (clientEmail && !client.email) {
+      // Backfill email if we matched by name
+      db.prepare('UPDATE clients SET email = ? WHERE id = ?').run(clientEmail, client.id);
+    }
+
+    // Determine next session number
+    const maxRow = db.prepare('SELECT MAX(session_number) AS max FROM sessions WHERE client_id = ?').get(client.id);
+    let nextNum = (maxRow.max || 0) + 1;
+
+    let lastSessionId = null;
+    for (const session of sessions) {
+      const createdAt = session.date ? `${session.date}T${session.startTime || '00:00'}:00` : null;
+      const r = insertSession.run(client.id, staffId, nextNum, createdAt || new Date().toISOString());
+      lastSessionId = r.lastInsertRowid;
+      nextNum++;
+    }
+
+    // Attach plan to last session
+    if (lastSessionId && plan && plan.type) {
+      const reviewDeadline = (plan.type === 'no_follow_up' && plan.googleReviewAsked)
+        ? new Date(Date.now() + 2 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10)
+        : null;
+      insertPlan.run(
+        lastSessionId,
+        plan.type,
+        plan.followUpDate ?? null,
+        plan.type === 'no_follow_up' ? (plan.googleReviewAsked ? 1 : 0) : null,
+        plan.referDepartment ?? null,
+        reviewDeadline
+      );
+      db.prepare("UPDATE clients SET updated_at = datetime('now') WHERE id = ?").run(client.id);
+    }
+
+    return sessions.length;
+  });
+
+  for (const group of groups) {
+    try {
+      const count = importGroup(group);
+      results.imported += count;
+    } catch (err) {
+      results.skipped++;
+      results.errors.push(`${group.clientName} (${group.staffName}): ${err.message}`);
+    }
+  }
+
+  res.json(results);
+});
+
 // PUT /api/admin/plans/:id/complete
 router.put('/plans/:id/complete', (req, res) => {
   const result = db.prepare(

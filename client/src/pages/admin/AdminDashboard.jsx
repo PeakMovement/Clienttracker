@@ -88,6 +88,8 @@ export default function AdminDashboard() {
             <span>{stats.totalStaff} staff</span>
             <span>·</span>
             <Link to="/admin/staff" className="text-brand-600 font-medium">Manage Staff</Link>
+            <span>·</span>
+            <Link to="/admin/import" className="text-brand-600 font-medium">Import Bookings</Link>
           </div>
         )}
 
