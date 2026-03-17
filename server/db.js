@@ -74,6 +74,9 @@ try {
 try {
   db.exec(`ALTER TABLE clients ADD COLUMN predictive_flagged_at TEXT`);
 } catch (_) { /* column already exists */ }
+try {
+  db.exec(`ALTER TABLE clients ADD COLUMN predictive_contact_status TEXT`);
+} catch (_) { /* column already exists */ }
 
 // Seed default admin if none exists
 const adminExists = db.prepare('SELECT id FROM staff WHERE is_admin = 1').get();

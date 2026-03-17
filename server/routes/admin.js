@@ -109,6 +109,14 @@ router.get('/predictive-clients', (req, res) => {
   res.json(rows);
 });
 
+// PUT /api/admin/predictive-clients/:id/contact-status
+router.put('/predictive-clients/:id/contact-status', (req, res) => {
+  const { status } = req.body; // 'invited' | 'declined'
+  if (!['invited', 'declined'].includes(status)) return res.status(400).json({ error: 'Invalid status' });
+  db.prepare(`UPDATE clients SET predictive = 0, predictive_contact_status = ? WHERE id = ?`).run(status, req.params.id);
+  res.json({ ok: true });
+});
+
 // POST /api/admin/import-bookings
 // Body: { groups: [{ clientName, clientEmail, staffId, sessions: [{date, service}], plan }] }
 router.post('/import-bookings', (req, res) => {

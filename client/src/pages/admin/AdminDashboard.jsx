@@ -70,6 +70,15 @@ export default function AdminDashboard() {
     fetchItems(tab);
   };
 
+  const handlePredictiveStatus = async (clientId, status) => {
+    try {
+      await api.put(`/admin/predictive-clients/${clientId}/contact-status`, { status });
+      setPredictiveClients(prev => prev.filter(c => c.id !== clientId));
+    } catch (err) {
+      alert(err.response?.data?.error || 'Failed to update');
+    }
+  };
+
   const handleComplete = async (planId) => {
     try {
       await api.put(`/admin/plans/${planId}/complete`);
@@ -123,11 +132,20 @@ export default function AdminDashboard() {
                     {c.last_session_date && ` · ${new Date(c.last_session_date).toLocaleDateString('en-AU', { day: 'numeric', month: 'short' })}`}
                   </p>
                 </div>
-                <span className="text-xs text-teal-500 font-medium whitespace-nowrap ml-2">
-                  {c.predictive_flagged_at
-                    ? new Date(c.predictive_flagged_at).toLocaleDateString('en-AU', { day: 'numeric', month: 'short' })
-                    : ''}
-                </span>
+                <div className="flex items-center gap-2 ml-2 shrink-0">
+                  <button
+                    onClick={() => handlePredictiveStatus(c.id, 'invited')}
+                    className="text-xs px-2 py-1 rounded-lg bg-teal-100 text-teal-700 font-medium hover:bg-teal-200 transition-colors"
+                  >
+                    Invited
+                  </button>
+                  <button
+                    onClick={() => handlePredictiveStatus(c.id, 'declined')}
+                    className="text-xs px-2 py-1 rounded-lg bg-gray-100 text-gray-500 font-medium hover:bg-gray-200 transition-colors"
+                  >
+                    Declined
+                  </button>
+                </div>
               </div>
             ))}
           </div>
