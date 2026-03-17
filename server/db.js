@@ -3,12 +3,13 @@ const bcrypt = require('bcrypt');
 const path = require('path');
 const fs = require('fs');
 
-// Use DATA_DIR env var if set (e.g. Railway persistent volume), otherwise fall back to local data/
-const dataDir = process.env.DATA_DIR || path.join(__dirname, 'data');
+// Priority: DATA_DIR env var → /data volume (Railway auto-detect) → local server/data/
+const dataDir = process.env.DATA_DIR
+  || (fs.existsSync('/data') ? '/data' : path.join(__dirname, 'data'));
 if (!fs.existsSync(dataDir)) fs.mkdirSync(dataDir, { recursive: true });
 
 const dbPath = path.join(dataDir, 'tracker.db');
-console.log(`[db] Using database at: ${dbPath}`);
+console.log(`[db] Using database at: ${dbPath} (DATA_DIR=${process.env.DATA_DIR || 'not set'})`);
 const db = new Database(dbPath);
 
 // Enable WAL mode for better concurrent read performance
