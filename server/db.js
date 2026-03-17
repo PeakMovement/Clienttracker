@@ -7,7 +7,9 @@ const fs = require('fs');
 const dataDir = process.env.DATA_DIR || path.join(__dirname, 'data');
 if (!fs.existsSync(dataDir)) fs.mkdirSync(dataDir, { recursive: true });
 
-const db = new Database(path.join(dataDir, 'tracker.db'));
+const dbPath = path.join(dataDir, 'tracker.db');
+console.log(`[db] Using database at: ${dbPath}`);
+const db = new Database(dbPath);
 
 // Enable WAL mode for better concurrent read performance
 db.pragma('journal_mode = WAL');

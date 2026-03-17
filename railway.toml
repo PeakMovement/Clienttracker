@@ -11,6 +11,6 @@ restartPolicyType = "on_failure"
 [[volumes]]
 mountPath = "/data"
 
-[environments.production.variables]
+[variables]
 NODE_ENV = "production"
 DATA_DIR = "/data"
