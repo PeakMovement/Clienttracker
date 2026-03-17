@@ -44,20 +44,24 @@ router.post('/', (req, res) => {
     'INSERT INTO sessions (client_id, staff_id, session_number) VALUES (?, ?, ?)'
   );
   const insertPlan = db.prepare(`
-    INSERT INTO session_plans (session_id, plan_type, follow_up_date, google_review_asked, refer_department)
-    VALUES (?, ?, ?, ?, ?)
+    INSERT INTO session_plans (session_id, plan_type, follow_up_date, google_review_asked, refer_department, google_review_deadline)
+    VALUES (?, ?, ?, ?, ?, ?)
   `);
 
   const createSession = db.transaction(() => {
     const sessionResult = insertSession.run(clientId, req.user.staffId, sessionNumber);
     const sessionId = sessionResult.lastInsertRowid;
     for (const plan of plans) {
+      const reviewDeadline = (plan.type === 'no_follow_up' && plan.googleReviewAsked)
+        ? new Date(Date.now() + 2 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10)
+        : null;
       insertPlan.run(
         sessionId,
         plan.type,
         plan.followUpDate ?? null,
         plan.type === 'no_follow_up' ? (plan.googleReviewAsked ? 1 : 0) : null,
-        plan.referDepartment ?? null
+        plan.referDepartment ?? null,
+        reviewDeadline
       );
     }
     // Update client's updated_at

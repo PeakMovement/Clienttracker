@@ -53,6 +53,11 @@ db.exec(`
   );
 `);
 
+// Migrate: add google_review_deadline column if not already present
+try {
+  db.exec(`ALTER TABLE session_plans ADD COLUMN google_review_deadline TEXT`);
+} catch (_) { /* column already exists */ }
+
 // Seed default admin if none exists
 const adminExists = db.prepare('SELECT id FROM staff WHERE is_admin = 1').get();
 if (!adminExists) {

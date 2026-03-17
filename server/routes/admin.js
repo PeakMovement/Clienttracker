@@ -10,6 +10,7 @@ const planQuery = (type, extraWhere = '') => `
   SELECT
     sp.id, sp.plan_type, sp.follow_up_date, sp.google_review_asked,
     sp.refer_department, sp.is_completed, sp.created_at, sp.updated_at,
+    sp.google_review_deadline,
     s.session_number,
     c.name AS client_name,
     st.name AS staff_name, st.profession AS staff_profession
@@ -29,6 +30,7 @@ router.get('/dashboard', (req, res) => {
   const referrals = db.prepare("SELECT COUNT(*) AS count FROM session_plans WHERE plan_type = 'refer' AND is_completed = 0").get();
   const overdue = db.prepare("SELECT COUNT(*) AS count FROM session_plans WHERE plan_type = 'follow_up' AND is_completed = 0 AND follow_up_date < ?").get(today);
   const upcoming = db.prepare("SELECT COUNT(*) AS count FROM session_plans WHERE plan_type = 'follow_up' AND is_completed = 0 AND follow_up_date >= ?").get(today);
+  const overdueReviews = db.prepare("SELECT COUNT(*) AS count FROM session_plans WHERE plan_type = 'no_follow_up' AND google_review_asked = 1 AND is_completed = 0 AND google_review_deadline < ?").get(today);
   const totalClients = db.prepare("SELECT COUNT(*) AS count FROM clients WHERE status = 'active'").get();
   const totalStaff = db.prepare("SELECT COUNT(*) AS count FROM staff WHERE is_admin = 0").get();
   res.json({
@@ -36,6 +38,7 @@ router.get('/dashboard', (req, res) => {
     pendingReferrals: referrals.count,
     overdueFollowUps: overdue.count,
     upcomingFollowUps: upcoming.count,
+    overdueGoogleReviews: overdueReviews.count,
     activeClients: totalClients.count,
     totalStaff: totalStaff.count,
   });
@@ -64,6 +67,30 @@ router.get('/overdue-followups', (req, res) => {
 router.get('/upcoming-followups', (req, res) => {
   const today = new Date().toISOString().slice(0, 10);
   const rows = db.prepare(planQuery('follow_up', `AND sp.follow_up_date >= '${today}'`)).all();
+  res.json(rows);
+});
+
+// GET /api/admin/overdue-reviews — Google review not marked complete within 2 days
+router.get('/overdue-reviews', (req, res) => {
+  const today = new Date().toISOString().slice(0, 10);
+  const rows = db.prepare(`
+    SELECT
+      sp.id, sp.plan_type, sp.follow_up_date, sp.google_review_asked,
+      sp.refer_department, sp.is_completed, sp.created_at, sp.updated_at,
+      sp.google_review_deadline,
+      s.session_number,
+      c.name AS client_name,
+      st.name AS staff_name, st.profession AS staff_profession
+    FROM session_plans sp
+    JOIN sessions s ON sp.session_id = s.id
+    JOIN clients c ON s.client_id = c.id
+    JOIN staff st ON s.staff_id = st.id
+    WHERE sp.plan_type = 'no_follow_up'
+      AND sp.google_review_asked = 1
+      AND sp.is_completed = 0
+      AND sp.google_review_deadline < ?
+    ORDER BY sp.google_review_deadline ASC
+  `).all(today);
   res.json(rows);
 });
 

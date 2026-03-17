@@ -6,6 +6,7 @@ import ActionCard from '../../components/admin/ActionCard';
 import api from '../../api';
 
 const TABS = [
+  { id: 'overdueReviews', label: 'Overdue Reviews', endpoint: '/admin/overdue-reviews', color: 'orange' },
   { id: 'reviews', label: 'Pending Reviews', endpoint: '/admin/pending-reviews', color: 'purple' },
   { id: 'referrals', label: 'Pending Referrals', endpoint: '/admin/pending-referrals', color: 'blue' },
   { id: 'overdue', label: 'Overdue Follow-Ups', endpoint: '/admin/overdue-followups', color: 'red' },
@@ -69,6 +70,7 @@ export default function AdminDashboard() {
   };
 
   const statConfig = stats ? [
+    { id: 'overdueReviews', label: 'Overdue Reviews', count: stats.overdueGoogleReviews, color: 'orange' },
     { id: 'reviews', label: 'Pending Reviews', count: stats.pendingReviews, color: 'purple' },
     { id: 'referrals', label: 'Pending Referrals', count: stats.pendingReferrals, color: 'blue' },
     { id: 'overdue', label: 'Overdue Follow-Ups', count: stats.overdueFollowUps, color: 'red' },

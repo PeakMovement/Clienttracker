@@ -11,7 +11,8 @@ function isOverdue(dateStr) {
 
 export default function ActionCard({ plan, onComplete }) {
   const { plan_type, follow_up_date, google_review_asked, refer_department,
-          client_name, staff_name, session_number, created_at } = plan;
+          client_name, staff_name, session_number, created_at,
+          google_review_deadline } = plan;
 
   return (
     <div className="card">
@@ -39,8 +40,20 @@ export default function ActionCard({ plan, onComplete }) {
       )}
 
       {plan_type === 'no_follow_up' && (
-        <div className="text-base font-medium bg-purple-50 text-purple-800 rounded-xl px-3 py-2 mb-3">
+        <div className={`text-base font-medium rounded-xl px-3 py-2 mb-3 ${
+          google_review_deadline && isOverdue(google_review_deadline)
+            ? 'bg-orange-100 text-orange-800'
+            : 'bg-purple-50 text-purple-800'
+        }`}>
           Google review {google_review_asked ? 'was asked' : 'was NOT asked'}
+          {google_review_deadline && (
+            <span className="ml-2 text-xs">
+              · Deadline: {formatDate(google_review_deadline)}
+              {isOverdue(google_review_deadline) && (
+                <span className="ml-1 font-bold">OVERDUE</span>
+              )}
+            </span>
+          )}
         </div>
       )}
 

@@ -4,6 +4,7 @@ export default function StatsTile({ label, count, color = 'gray', onClick, activ
     purple: active ? 'bg-purple-600 text-white' : 'bg-purple-50 text-purple-800 border border-purple-200',
     red: active ? 'bg-red-600 text-white' : 'bg-red-50 text-red-800 border border-red-200',
     green: active ? 'bg-green-600 text-white' : 'bg-green-50 text-green-800 border border-green-200',
+    orange: active ? 'bg-orange-600 text-white' : 'bg-orange-50 text-orange-800 border border-orange-200',
     gray: active ? 'bg-gray-600 text-white' : 'bg-gray-50 text-gray-800 border border-gray-200',
   };
 
