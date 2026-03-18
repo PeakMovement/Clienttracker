@@ -117,20 +117,31 @@ router.put('/predictive-clients/:id/contact-status', (req, res) => {
   res.json({ ok: true });
 });
 
-// GET /api/admin/followup-calendar — all incomplete follow-ups grouped by date
+// GET /api/admin/followup-calendar — all incomplete plans with a relevant date
 router.get('/followup-calendar', (req, res) => {
   const rows = db.prepare(`
     SELECT
-      sp.id, sp.follow_up_date,
+      sp.id, sp.plan_type, sp.follow_up_date, sp.google_review_deadline,
+      sp.refer_department,
       c.name AS client_name,
       st.name AS staff_name, st.profession AS staff_profession,
-      s.session_number
+      s.session_number,
+      CASE
+        WHEN sp.plan_type = 'follow_up'    THEN sp.follow_up_date
+        WHEN sp.plan_type = 'no_follow_up' THEN sp.google_review_deadline
+        ELSE date(sp.created_at)
+      END AS calendar_date
     FROM session_plans sp
     JOIN sessions s ON sp.session_id = s.id
     JOIN clients c ON s.client_id = c.id
     JOIN staff st ON s.staff_id = st.id
-    WHERE sp.plan_type = 'follow_up' AND sp.is_completed = 0
-    ORDER BY sp.follow_up_date ASC
+    WHERE sp.is_completed = 0
+      AND (
+        (sp.plan_type = 'follow_up'    AND sp.follow_up_date IS NOT NULL)
+        OR (sp.plan_type = 'no_follow_up' AND sp.google_review_deadline IS NOT NULL)
+        OR sp.plan_type = 'refer'
+      )
+    ORDER BY calendar_date ASC
   `).all();
   res.json(rows);
 });
