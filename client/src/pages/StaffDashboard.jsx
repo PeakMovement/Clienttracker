@@ -28,7 +28,7 @@ export default function StaffDashboard() {
         data.filter(c => c.status === 'active' && c.last_session_number).map(async c => {
           const { data: detail } = await api.get(`/clients/${c.id}/sessions`);
           if (detail.sessions.length > 0) {
-            plansMap[c.id] = detail.sessions[0].plans;
+            plansMap[c.id] = detail.sessions[0].plans.filter(p => !p.is_completed);
           }
         })
       );
