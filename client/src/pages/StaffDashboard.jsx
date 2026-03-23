@@ -5,6 +5,43 @@ import ClientCard from '../components/clients/ClientCard';
 import { useAuth } from '../context/AuthContext';
 import api from '../api';
 
+const MOTIVATIONAL_MESSAGES = [
+  "You changed someone's life today.",
+  "Every session you gave mattered more than you know.",
+  "That's one more person moving better, living better.",
+  "Your dedication just made a real difference.",
+  "The work you do ripples further than you can see.",
+  "Another success story — because of you.",
+  "That client will remember the care you gave them.",
+  "You showed up, and that changed everything.",
+  "Healing hands, healing hearts. Well done.",
+  "That's what commitment looks like.",
+  "One journey complete. Countless lives still to change.",
+  "You helped someone reclaim their strength.",
+  "That's the power of what you do every day.",
+  "Progress made, pain reduced — thanks to you.",
+  "Behind every recovered client is a practitioner who cared.",
+  "You brought your best — and it showed.",
+  "That person's quality of life just improved because of you.",
+  "Consistency, care, commitment — you've got all three.",
+  "Small steps guided by you become giant leaps for them.",
+  "The best practitioners don't just treat bodies — they restore confidence.",
+  "Another milestone reached. You made that happen.",
+  "Your expertise gave someone their life back.",
+  "That's not just a completed journey — that's a transformation.",
+  "Keep going. The world needs more practitioners like you.",
+  "That client walked in with pain and walked out with hope.",
+  "You are exactly where you need to be, doing exactly what matters.",
+  "The care you give today becomes the strength they carry tomorrow.",
+  "That's another win for your patient. And yours too.",
+  "You didn't just treat a condition — you supported a person.",
+  "Moments like this are why you chose this profession.",
+];
+
+function pickMessage() {
+  return MOTIVATIONAL_MESSAGES[Math.floor(Math.random() * MOTIVATIONAL_MESSAGES.length)];
+}
+
 export default function StaffDashboard() {
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -16,6 +53,7 @@ export default function StaffDashboard() {
   const [addingClient, setAddingClient] = useState(false);
   const [showAddForm, setShowAddForm] = useState(false);
   const [wellDoneName, setWellDoneName] = useState('');
+  const [wellDoneMsg, setWellDoneMsg] = useState('');
 
   const fetchClients = useCallback(async () => {
     try {
@@ -72,7 +110,8 @@ export default function StaffDashboard() {
       await api.put(`/clients/${client.id}/complete`);
       fetchClients();
       setWellDoneName(client.name);
-      setTimeout(() => setWellDoneName(''), 2000);
+      setWellDoneMsg(pickMessage());
+      setTimeout(() => { setWellDoneName(''); setWellDoneMsg(''); }, 4000);
     } catch (err) {
       alert(err.response?.data?.error || 'Failed to update client');
     }
@@ -103,10 +142,11 @@ export default function StaffDashboard() {
     <AppShell title={`${user?.name}'s Clients`}>
       {/* Well done banner */}
       {wellDoneName && (
-        <div className="fixed inset-0 flex items-center justify-center z-50 pointer-events-none">
-          <div className="bg-brand-600 text-white text-center px-10 py-6 rounded-3xl shadow-2xl animate-bounce-in">
+        <div className="fixed inset-0 flex items-center justify-center z-50 pointer-events-none px-6">
+          <div className="bg-brand-600 text-white text-center px-10 py-7 rounded-3xl shadow-2xl animate-bounce-in max-w-sm w-full">
             <p className="text-3xl font-bold mb-1">Well done! 🎉</p>
-            <p className="text-lg opacity-90">{wellDoneName}'s journey is complete</p>
+            <p className="text-base opacity-90 mb-3">{wellDoneName}'s journey is complete</p>
+            <p className="text-sm opacity-75 italic leading-snug">{wellDoneMsg}</p>
           </div>
         </div>
       )}
