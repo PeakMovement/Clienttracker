@@ -91,7 +91,7 @@ if (!adminExists) {
 // Seed known staff members if they don't exist yet
 const staffSeeds = [
   { name: 'Luyolo',  profession: 'Biokineticist',   pin: '1234' },
-  { name: 'Zoe',     profession: 'Physiotherapist', pin: '1235' },
+  { name: 'Zoe',     profession: 'Physiotherapist', pin: '0407' },
   { name: 'Tasneem', profession: 'Physiotherapist', pin: '1236' },
 ];
 for (const s of staffSeeds) {
