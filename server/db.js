@@ -88,4 +88,19 @@ if (!adminExists) {
   console.log('Default admin created: PIN = 0000 (change this immediately in Staff Management)');
 }
 
+// Seed known staff members if they don't exist yet
+const staffSeeds = [
+  { name: 'Luyolo',  profession: 'Biokineticist',    pin: '1234' },
+  { name: 'Zoe',     profession: 'Physiotherapist',  pin: '1234' },
+  { name: 'Tasneem', profession: 'Physiotherapist',  pin: '1234' },
+];
+for (const s of staffSeeds) {
+  const exists = db.prepare('SELECT id FROM staff WHERE name = ?').get(s.name);
+  if (!exists) {
+    const hash = bcrypt.hashSync(s.pin, 10);
+    db.prepare('INSERT INTO staff (name, pin_hash, profession, is_admin) VALUES (?, ?, ?, 0)').run(s.name, hash, s.profession);
+    console.log(`Staff seeded: ${s.name} (${s.profession})`);
+  }
+}
+
 module.exports = db;
