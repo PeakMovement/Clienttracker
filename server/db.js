@@ -106,6 +106,5 @@ for (const s of staffSeeds) {
     db.prepare('UPDATE staff SET pin_hash = ? WHERE name = ? AND is_admin = 0').run(hash, s.name);
   }
 }
-}
 
 module.exports = db;
