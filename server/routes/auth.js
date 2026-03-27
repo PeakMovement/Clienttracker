@@ -49,4 +49,33 @@ router.get('/me', auth, (req, res) => {
   });
 });
 
+// PUT /api/auth/change-pin
+router.put('/change-pin', auth, (req, res) => {
+  const { currentPin, newPin } = req.body;
+  if (!currentPin || !/^\d{4}$/.test(currentPin)) {
+    return res.status(400).json({ error: 'Current PIN must be exactly 4 digits' });
+  }
+  if (!newPin || !/^\d{4}$/.test(newPin)) {
+    return res.status(400).json({ error: 'New PIN must be exactly 4 digits' });
+  }
+
+  const staff = db.prepare('SELECT * FROM staff WHERE id = ?').get(req.user.staffId);
+  if (!staff) return res.status(404).json({ error: 'Staff not found' });
+
+  if (!bcrypt.compareSync(currentPin, staff.pin_hash)) {
+    return res.status(401).json({ error: 'Current PIN is incorrect' });
+  }
+
+  // Ensure the new PIN isn't already in use by someone else
+  const others = db.prepare('SELECT * FROM staff WHERE id != ?').all(req.user.staffId);
+  const conflict = others.find(s => bcrypt.compareSync(newPin, s.pin_hash));
+  if (conflict) {
+    return res.status(400).json({ error: 'That PIN is already in use' });
+  }
+
+  const newHash = bcrypt.hashSync(newPin, 10);
+  db.prepare('UPDATE staff SET pin_hash = ? WHERE id = ?').run(newHash, req.user.staffId);
+  res.json({ success: true });
+});
+
 module.exports = router;

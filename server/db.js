@@ -88,11 +88,14 @@ if (!adminExists) {
   console.log('Default admin created: PIN = 0000 (change this immediately in Staff Management)');
 }
 
-// Seed known staff members if they don't exist yet
+// Seed known staff members if they don't exist yet (only inserts, never overwrites changed PINs)
 const staffSeeds = [
-  { name: 'Luyolo',  profession: 'Biokineticist',   pin: '1234' },
-  { name: 'Zoe',     profession: 'Physiotherapist', pin: '0407' },
-  { name: 'Tasneem', profession: 'Physiotherapist', pin: '1236' },
+  { name: 'Luyolo',   profession: 'Biokineticist',   pin: '1234' },
+  { name: 'Zoe',      profession: 'Physiotherapist', pin: '0407' },
+  { name: 'Tasneem',  profession: 'Physiotherapist', pin: '1236' },
+  { name: 'Justin',   profession: 'Physiotherapist', pin: '1237' },
+  { name: 'Tayla',    profession: 'Physiotherapist', pin: '1238' },
+  { name: 'Kashmira', profession: 'Physiotherapist', pin: '1239' },
 ];
 for (const s of staffSeeds) {
   const exists = db.prepare('SELECT id FROM staff WHERE name = ?').get(s.name);
@@ -100,10 +103,6 @@ for (const s of staffSeeds) {
     const hash = bcrypt.hashSync(s.pin, 10);
     db.prepare('INSERT INTO staff (name, pin_hash, profession, is_admin) VALUES (?, ?, ?, 0)').run(s.name, hash, s.profession);
     console.log(`Staff seeded: ${s.name} (${s.profession})`);
-  } else {
-    // Ensure PIN is up to date
-    const hash = bcrypt.hashSync(s.pin, 10);
-    db.prepare('UPDATE staff SET pin_hash = ? WHERE name = ? AND is_admin = 0').run(hash, s.name);
   }
 }
 

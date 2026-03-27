@@ -40,6 +40,11 @@ export default function AppShell({ children, title, backTo }) {
               My Clients
             </Link>
           )}
+          {location.pathname !== '/profile' && (
+            <Link to="/profile" className="text-sm bg-brand-700 px-3 py-1 rounded-xl active:bg-brand-800">
+              Profile
+            </Link>
+          )}
           <button
             onClick={handleLogout}
             className="text-sm bg-brand-700 px-3 py-1 rounded-xl active:bg-brand-800"
