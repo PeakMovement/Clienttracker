@@ -94,8 +94,8 @@ const staffSeeds = [
   { name: 'Zoe',      profession: 'Physiotherapist', pin: '0407' },
   { name: 'Tasneem',  profession: 'Physiotherapist', pin: '1236' },
   { name: 'Justin',   profession: 'Physiotherapist', pin: '1237' },
-  { name: 'Tayla',    profession: 'Physiotherapist', pin: '1238' },
-  { name: 'Kashmira', profession: 'Physiotherapist', pin: '1239' },
+  { name: 'Tayla',    profession: 'Biokineticist',   pin: '1238' },
+  { name: 'Kashmira', profession: 'Doctor',          pin: '1239' },
 ];
 for (const s of staffSeeds) {
   const exists = db.prepare('SELECT id FROM staff WHERE name = ?').get(s.name);
@@ -103,6 +103,9 @@ for (const s of staffSeeds) {
     const hash = bcrypt.hashSync(s.pin, 10);
     db.prepare('INSERT INTO staff (name, pin_hash, profession, is_admin) VALUES (?, ?, ?, 0)').run(s.name, hash, s.profession);
     console.log(`Staff seeded: ${s.name} (${s.profession})`);
+  } else {
+    // Correct profession if it was seeded incorrectly in a previous deploy
+    db.prepare('UPDATE staff SET profession = ? WHERE name = ? AND profession != ?').run(s.profession, s.name, s.profession);
   }
 }
 

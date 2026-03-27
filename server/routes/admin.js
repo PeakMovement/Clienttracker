@@ -6,7 +6,7 @@ const adminOnly = require('../middleware/adminOnly');
 const router = express.Router();
 router.use(auth, adminOnly);
 
-const planQuery = (type, extraWhere = '') => `
+const PLAN_SELECT = `
   SELECT
     sp.id, sp.plan_type, sp.follow_up_date, sp.google_review_asked,
     sp.refer_department, sp.is_completed, sp.created_at, sp.updated_at,
@@ -18,9 +18,6 @@ const planQuery = (type, extraWhere = '') => `
   JOIN sessions s ON sp.session_id = s.id
   JOIN clients c ON s.client_id = c.id
   JOIN staff st ON s.staff_id = st.id
-  WHERE sp.plan_type = '${type}' AND sp.is_completed = 0
-  ${extraWhere}
-  ORDER BY sp.created_at ASC
 `;
 
 // GET /api/admin/dashboard — counts
@@ -46,27 +43,35 @@ router.get('/dashboard', (req, res) => {
 
 // GET /api/admin/pending-reviews
 router.get('/pending-reviews', (req, res) => {
-  const rows = db.prepare(planQuery('no_follow_up')).all();
+  const rows = db.prepare(
+    PLAN_SELECT + `WHERE sp.plan_type = 'no_follow_up' AND sp.is_completed = 0 ORDER BY sp.created_at ASC`
+  ).all();
   res.json(rows);
 });
 
 // GET /api/admin/pending-referrals
 router.get('/pending-referrals', (req, res) => {
-  const rows = db.prepare(planQuery('refer')).all();
+  const rows = db.prepare(
+    PLAN_SELECT + `WHERE sp.plan_type = 'refer' AND sp.is_completed = 0 ORDER BY sp.created_at ASC`
+  ).all();
   res.json(rows);
 });
 
 // GET /api/admin/overdue-followups
 router.get('/overdue-followups', (req, res) => {
   const today = new Date().toISOString().slice(0, 10);
-  const rows = db.prepare(planQuery('follow_up', `AND sp.follow_up_date < '${today}'`)).all();
+  const rows = db.prepare(
+    PLAN_SELECT + `WHERE sp.plan_type = 'follow_up' AND sp.is_completed = 0 AND sp.follow_up_date < ? ORDER BY sp.created_at ASC`
+  ).all(today);
   res.json(rows);
 });
 
 // GET /api/admin/upcoming-followups
 router.get('/upcoming-followups', (req, res) => {
   const today = new Date().toISOString().slice(0, 10);
-  const rows = db.prepare(planQuery('follow_up', `AND sp.follow_up_date >= '${today}'`)).all();
+  const rows = db.prepare(
+    PLAN_SELECT + `WHERE sp.plan_type = 'follow_up' AND sp.is_completed = 0 AND sp.follow_up_date >= ? ORDER BY sp.created_at ASC`
+  ).all(today);
   res.json(rows);
 });
 
